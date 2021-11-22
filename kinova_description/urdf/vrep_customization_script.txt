@@ -1,0 +1,322 @@
+-- This is a customization script. It is intended to be used to customize a scene in
+-- various ways, mainly when simulation is not running. When simulation is running,
+-- do not use customization scripts, but rather child scripts if possible
+
+-- if you wish to execute code contained in an external file instead,
+-- use the require-directive, e.g.:
+--
+-- require 'myExternalFile'
+--
+-- Above will look for <V-REP executable path>/myExternalFile.lua or
+-- <V-REP executable path>/lua/myExternalFile.lua
+-- (the file can be opened in this editor with the popup menu over
+-- the file name)
+
+function sysCall_init()
+    -- do some initialization here
+end
+
+function sysCall_nonSimulation()
+    -- is executed when simulation is not running
+end
+
+function sysCall_cleanup()
+    -- do some clean-up here
+end
+
+function individualParams(inVar)
+    if table.getn(inVar)>=2 then
+        return true
+    else
+        return false
+    end
+end
+
+set_engine_params = function(inInts,inFloats,inStrings,inBuffer)
+    sim.setEngineFloatParameter(sim.bullet_global_stepsize, -1, inFloats[1])
+    sim.setEngineFloatParameter(sim.ode_global_stepsize, -1, inFloats[1])
+    -- sim.setEngineFloatParameter(sim.vortex_global_stepsize, -1, inFloats[1])
+    sim.setEngineFloatParameter(sim.newton_global_stepsize, -1, inFloats[1])
+
+    -- sim.setEngineInt32Parameter(sim.bullet_global_constraintsolvingiterations,-1, inInts[1])
+    -- sim.setEngineInt32Parameter(sim.ode_global_constraintsolvingiterations, -1, inInts[1])
+    -- sim.setEngineInt32Parameter(sim.newton_global_constraintsolvingiterations, -1, inInts[1])
+    return {},{},{},''
+end
+
+set_inertia_params = function(inInts,inFloats,inStrings,inBuffer)
+    local inertiaTensor = {}
+    local mass, inertia, com = sim.getShapeMassAndInertia(inInts[1],nil)
+    table.insert(inertiaTensor,inFloats[2]/inFloats[1])
+    table.insert(inertiaTensor,0)
+    table.insert(inertiaTensor,0)
+    table.insert(inertiaTensor,0)
+    table.insert(inertiaTensor,inFloats[3]/inFloats[1])
+    table.insert(inertiaTensor,0)
+    table.insert(inertiaTensor,0)
+    table.insert(inertiaTensor,0)
+    table.insert(inertiaTensor,inFloats[4]/inFloats[1])
+
+    sim.setShapeMassAndInertia(inInts[1], inFloats[1], inertiaTensor, com,nil)
+    return {},{},{},''
+end
+
+-- set_joint_params = function(inInts,inFloats,inStrings,inBuffer)
+--     local joint = {}
+--     table.insert(joint,sim.getObjectHandle("m1n6s300_joint_1"))
+--     table.insert(joint,sim.getObjectHandle("m1n6s300_joint_2"))
+--     table.insert(joint,sim.getObjectHandle("m1n6s300_joint_3"))
+--     table.insert(joint,sim.getObjectHandle("m1n6s300_joint_4"))
+--     table.insert(joint,sim.getObjectHandle("m1n6s300_joint_5"))
+--     table.insert(joint,sim.getObjectHandle("m1n6s300_joint_6"))
+--     for jointCount = 1, #joint do
+--         sim.setEngineFloatParameter(sim.vortex_joint_p0damping, joint[jointCount], inFloats[jointCount])
+--     end
+--     return {},{},{},''
+-- end
+
+set_gripper_params = function(inInts,inFloats,inStrings,inBuffer)
+    local gripper = {}
+    table.insert(gripper, sim.getObjectHandle("m1n6s300_link_6_respondable"))
+    table.insert(gripper, sim.getObjectHandle("m1n6s300_link_finger_1_respondable"))
+    table.insert(gripper, sim.getObjectHandle("m1n6s300_link_finger_tip_1_respondable"))
+    table.insert(gripper, sim.getObjectHandle("m1n6s300_link_finger_2_respondable"))
+    table.insert(gripper, sim.getObjectHandle("m1n6s300_link_finger_tip_2_respondable"))
+    table.insert(gripper, sim.getObjectHandle("m1n6s300_link_finger_3_respondable"))
+    table.insert(gripper, sim.getObjectHandle("m1n6s300_link_finger_tip_3_respondable"))
+    
+    for gripperCount = 1, #gripper do
+        if individualParams(inFloats) == true then
+            sim.setEngineFloatParameter(sim.newton_body_kineticfriction, gripper[gripperCount], inFloats[2])
+
+            sim.setEngineFloatParameter(sim.bullet_body_restitution, gripper[gripperCount], inFloats[3])
+            -- sim.setEngineFloatParameter(sim.vortex_body_restitution, gripper[gripperCount], inFloats[2])
+            sim.setEngineFloatParameter(sim.newton_body_restitution, gripper[gripperCount], inFloats[3])
+          
+            sim.setEngineFloatParameter(sim.bullet_body_lineardamping, gripper[gripperCount], inFloats[4])
+            sim.setEngineFloatParameter(sim.ode_body_lineardamping,gripper[gripperCount], inFloats[4])
+            -- sim.setEngineFloatParameter(sim.vortex_body_linearvelocitydamping,gripper[gripperCount], inFloats[3])
+            -- sim.setEngineFloatParameter(sim.newton_body_lineardrag,gripper[gripperCount], inFloats[3])
+    
+            sim.setEngineFloatParameter(sim.bullet_body_angulardamping, gripper[gripperCount], inFloats[5])
+            sim.setEngineFloatParameter(sim.ode_body_angulardamping, gripper[gripperCount], inFloats[5])
+            -- sim.setEngineFloatParameter(sim.vortex_body_angularvelocitydamping, gripper[gripperCount], inFloats[4])
+            -- sim.setEngineFloatParameter(sim.newton_body_angulardrag, gripper[gripperCount], inFloats[4])
+
+            -- sim.setEngineFloatParameter(sim.newton_body_lineardrag, gripper[gripperCount], inFloats[6])
+            -- sim.setEngineFloatParameter(sim.newton_body_angulardrag, gripper[gripperCount], inFloats[7])        
+        end
+        sim.setEngineFloatParameter(sim.bullet_body_oldfriction, gripper[gripperCount], inFloats[1])
+        sim.setEngineFloatParameter(sim.bullet_body_friction, gripper[gripperCount], inFloats[1])
+        sim.setEngineFloatParameter(sim.ode_body_friction, gripper[gripperCount], inFloats[1])
+        -- sim.setEngineFloatParameter(sim.vortex_body_primlinearaxisfriction, gripper[gripperCount], inFloats[1])
+        sim.setEngineFloatParameter(sim.newton_body_staticfriction, gripper[gripperCount], inFloats[1])
+    end
+    return {},{},{},''
+end
+
+set_floor_params = function (inInts,inFloats,inStrings,inBuffer)
+    local Floor = sim.getObjectHandle("Floor")
+
+    if individualParams(inFloats) == true then
+        sim.setEngineFloatParameter(sim.newton_body_kineticfriction, Floor, inFloats[2])
+
+        sim.setEngineFloatParameter(sim.bullet_body_restitution, Floor, inFloats[3])
+        -- sim.setEngineFloatParameter(sim.vortex_body_restitution, Floor, inFloats[2])
+        sim.setEngineFloatParameter(sim.newton_body_restitution, Floor, inFloats[3])
+      
+        sim.setEngineFloatParameter(sim.bullet_body_lineardamping, Floor, inFloats[4])
+        sim.setEngineFloatParameter(sim.ode_body_lineardamping,Floor, inFloats[4])
+        -- sim.setEngineFloatParameter(sim.vortex_body_linearvelocitydamping,Floor, inFloats[3])
+        -- sim.setEngineFloatParameter(sim.newton_body_lineardrag,Floor, inFloats[3])
+
+        sim.setEngineFloatParameter(sim.bullet_body_angulardamping, Floor, inFloats[5])
+        sim.setEngineFloatParameter(sim.ode_body_angulardamping, Floor, inFloats[5])
+        -- sim.setEngineFloatParameter(sim.vortex_body_angularvelocitydamping, Floor, inFloats[4])
+        -- sim.setEngineFloatParameter(sim.newton_body_angulardrag, Floor, inFloats[4])
+
+        -- sim.setEngineFloatParameter(sim.newton_body_lineardrag, Floor, inFloats[6])
+        -- sim.setEngineFloatParameter(sim.newton_body_angulardrag, Floor, inFloats[7])        
+    end
+
+    sim.setEngineFloatParameter(sim.bullet_body_oldfriction, Floor, inFloats[1])
+    sim.setEngineFloatParameter(sim.bullet_body_friction, Floor, inFloats[1])
+    sim.setEngineFloatParameter(sim.ode_body_friction, Floor, inFloats[1])
+    -- sim.setEngineFloatParameter(sim.vortex_body_primlinearaxisfriction, Floor, inFloats[1])
+    sim.setEngineFloatParameter(sim.newton_body_staticfriction, Floor, inFloats[1])
+
+    return {},{},{},''
+end
+
+set_shape_params = function (inInts,inFloats,inStrings,inBuffer)
+    local Shape = sim.getObjectHandle("Shape")
+
+    if individualParams(inFloats) == true then
+        sim.setEngineFloatParameter(sim.newton_body_kineticfriction, Shape, inFloats[2])
+
+        sim.setEngineFloatParameter(sim.bullet_body_restitution, Shape, inFloats[3])
+        -- sim.setEngineFloatParameter(sim.vortex_body_restitution, Shape, inFloats[2])
+        sim.setEngineFloatParameter(sim.newton_body_restitution, Shape, inFloats[3])
+      
+        sim.setEngineFloatParameter(sim.bullet_body_lineardamping, Shape, inFloats[4])
+        sim.setEngineFloatParameter(sim.ode_body_lineardamping,Shape, inFloats[4])
+        -- sim.setEngineFloatParameter(sim.vortex_body_linearvelocitydamping,Shape, inFloats[3])
+        -- sim.setEngineFloatParameter(sim.newton_body_lineardrag,Shape, inFloats[3])
+
+        sim.setEngineFloatParameter(sim.bullet_body_angulardamping, Shape, inFloats[5])
+        sim.setEngineFloatParameter(sim.ode_body_angulardamping, Shape, inFloats[5])
+        -- sim.setEngineFloatParameter(sim.vortex_body_angularvelocitydamping, Shape, inFloats[4])
+        -- sim.setEngineFloatParameter(sim.newton_body_angulardrag, Shape, inFloats[4])
+
+        -- sim.setEngineFloatParameter(sim.newton_body_lineardrag, Shape, inFloats[6])
+        -- sim.setEngineFloatParameter(sim.newton_body_angulardrag, Shape, inFloats[7])        
+    end
+
+    sim.setEngineFloatParameter(sim.bullet_body_oldfriction, Shape, inFloats[1])
+    sim.setEngineFloatParameter(sim.bullet_body_friction, Shape, inFloats[1])
+    sim.setEngineFloatParameter(sim.ode_body_friction, Shape, inFloats[1])
+    -- sim.setEngineFloatParameter(sim.vortex_body_primlinearaxisfriction, Shape, inFloats[1])
+    sim.setEngineFloatParameter(sim.newton_body_staticfriction, Shape, inFloats[1])
+
+    return {},{},{},''
+end
+
+set_joint_params = function (inInts,inFloats,inStrings,inBuffer)
+    local joint1 = sim.getObjectHandle("m1n6s300_joint_1")
+    local joint2 = sim.getObjectHandle("m1n6s300_joint_2")
+    local joint3 = sim.getObjectHandle("m1n6s300_joint_3")
+    local joint4 = sim.getObjectHandle("m1n6s300_joint_4")
+    local joint5 = sim.getObjectHandle("m1n6s300_joint_5")
+    local joint6 = sim.getObjectHandle("m1n6s300_joint_6")
+
+    sim.setEngineFloatParameter(sim.bullet_joint_normalcfm, joint1, inFloats[1])
+    sim.setEngineFloatParameter(sim.ode_joint_normalcfm, joint1, inFloats[1])
+    sim.setEngineFloatParameter(sim.bullet_joint_normalcfm, joint2, inFloats[2])
+    sim.setEngineFloatParameter(sim.ode_joint_normalcfm, joint2, inFloats[2])
+    sim.setEngineFloatParameter(sim.bullet_joint_normalcfm, joint3, inFloats[3])
+    sim.setEngineFloatParameter(sim.ode_joint_normalcfm, joint3, inFloats[3])
+    sim.setEngineFloatParameter(sim.bullet_joint_normalcfm, joint4, inFloats[4])
+    sim.setEngineFloatParameter(sim.ode_joint_normalcfm, joint4, inFloats[4])
+    sim.setEngineFloatParameter(sim.bullet_joint_normalcfm, joint5, inFloats[5])
+    sim.setEngineFloatParameter(sim.ode_joint_normalcfm, joint5, inFloats[5])
+    sim.setEngineFloatParameter(sim.bullet_joint_normalcfm, joint6, inFloats[6])
+    sim.setEngineFloatParameter(sim.ode_joint_normalcfm, joint6, inFloats[6])
+
+    sim.setEngineFloatParameter(sim.bullet_joint_stoperp, joint1, inFloats[7])
+    sim.setEngineFloatParameter(sim.ode_joint_stoperp, joint1, inFloats[7])
+    sim.setEngineFloatParameter(sim.bullet_joint_stoperp, joint2, inFloats[8])
+    sim.setEngineFloatParameter(sim.ode_joint_stoperp, joint2, inFloats[8])
+    sim.setEngineFloatParameter(sim.bullet_joint_stoperp, joint3, inFloats[9])
+    sim.setEngineFloatParameter(sim.ode_joint_stoperp, joint3, inFloats[9])
+    sim.setEngineFloatParameter(sim.bullet_joint_stoperp, joint4, inFloats[10])
+    sim.setEngineFloatParameter(sim.ode_joint_stoperp, joint4, inFloats[10])
+    sim.setEngineFloatParameter(sim.bullet_joint_stoperp, joint5, inFloats[11])
+    sim.setEngineFloatParameter(sim.ode_joint_stoperp, joint5, inFloats[11])
+    sim.setEngineFloatParameter(sim.bullet_joint_stoperp, joint6, inFloats[12])
+    sim.setEngineFloatParameter(sim.ode_joint_stoperp, joint6, inFloats[12])
+
+    sim.setEngineFloatParameter(sim.bullet_joint_stopcfm, joint1, inFloats[13])
+    sim.setEngineFloatParameter(sim.ode_joint_stopcfm, joint1, inFloats[13])
+    sim.setEngineFloatParameter(sim.bullet_joint_stopcfm, joint2, inFloats[14])
+    sim.setEngineFloatParameter(sim.ode_joint_stopcfm, joint2, inFloats[14])
+    sim.setEngineFloatParameter(sim.bullet_joint_stopcfm, joint3, inFloats[15])
+    sim.setEngineFloatParameter(sim.ode_joint_stopcfm, joint3, inFloats[15])
+    sim.setEngineFloatParameter(sim.bullet_joint_stopcfm, joint4, inFloats[16])
+    sim.setEngineFloatParameter(sim.ode_joint_stopcfm, joint4, inFloats[16])
+    sim.setEngineFloatParameter(sim.bullet_joint_stopcfm, joint5, inFloats[17])
+    sim.setEngineFloatParameter(sim.ode_joint_stopcfm, joint5, inFloats[17])
+    sim.setEngineFloatParameter(sim.bullet_joint_stopcfm, joint6, inFloats[18])
+    sim.setEngineFloatParameter(sim.ode_joint_stopcfm, joint6, inFloats[18])
+
+    sim.setEngineFloatParameter(sim.ode_joint_bounce, joint1, inFloats[19])
+    sim.setEngineFloatParameter(sim.ode_joint_bounce, joint2, inFloats[20])
+    sim.setEngineFloatParameter(sim.ode_joint_bounce, joint3, inFloats[21])
+    sim.setEngineFloatParameter(sim.ode_joint_bounce, joint4, inFloats[22])
+    sim.setEngineFloatParameter(sim.ode_joint_bounce, joint5, inFloats[23])
+    sim.setEngineFloatParameter(sim.ode_joint_bounce, joint6, inFloats[24])
+
+end
+
+-- You can define additional system calls here:
+--[[
+
+function set_engine_params(solverIterations, stepSize, strings, bytes)
+end
+
+function sysCall_beforeSimulation()
+end
+
+function sysCall_actuation()
+end
+
+function sysCall_sensing()
+end
+
+function sysCall_suspend()
+end
+
+function sysCall_suspended()
+end
+
+function sysCall_resume()
+end
+
+function sysCall_afterSimulation()
+end
+
+function sysCall_beforeInstanceSwitch()
+end
+
+function sysCall_afterInstanceSwitch()
+end
+
+function sysCall_dynCallback(inData)
+end
+
+function sysCall_jointCallback(inData)
+    return outData
+end
+
+function sysCall_contactCallback(inData)
+    return outData
+end
+
+function sysCall_beforeCopy(inData)
+    for key,value in pairs(inData.objectHandles) do
+        print("Object with handle "..key.." will be copied")
+    end
+end
+
+function sysCall_afterCopy(inData)
+    for key,value in pairs(inData.objectHandles) do
+        print("Object with handle "..key.." was copied")
+    end
+end
+
+function sysCall_beforeDelete(inData)
+    for key,value in pairs(inData.objectHandles) do
+        print("Object with handle "..key.." will be deleted")
+    end
+    -- inData.allObjects indicates if all objects in the scene will be deleted
+end
+
+function sysCall_afterDelete(inData)
+    for key,value in pairs(inData.objectHandles) do
+        print("Object with handle "..key.." was deleted")
+    end
+    -- inData.allObjects indicates if all objects in the scene were deleted
+end
+
+function sysCall_afterCreate(inData)
+    for i=1,#inData.objectHandles,1 do
+        print("Object with handle "..inData.objectHandles[i].." was created")
+    end
+end
+
+function sysCall_beforeMainScript()
+    -- Can be used to step a simulation in a custom manner.
+    local outData={doNotRunMainScript=false} -- when true, then the main script won't be executed
+    return outData
+end
+--]]
+
