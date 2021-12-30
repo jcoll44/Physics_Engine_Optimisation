@@ -1,13 +1,13 @@
 # Physics_Engine_Optimisation
 Accompanying code to the publication "Traversing the Reality Gap via Simulator Tuning". Most of this code was written pre-2020 and as such has not been tested recently and is not maintained. If you are having issues running with it please get in contact. 
 
-*[Jack Collins](https://jacktcollins.com), [Ross Brown](https://staff.qut.edu.au/staff/r.brown), [Jürgen Leitner](http://juxi.net) and [David Howard](https://people.csiro.au/H/D/David-Howard)
+[Jack Collins](https://jacktcollins.com), [Ross Brown](https://staff.qut.edu.au/staff/r.brown), [Jürgen Leitner](http://juxi.net) and [David Howard](https://people.csiro.au/H/D/David-Howard)
 
 ## Publication
 
 **Traversing the Reality Gap via Simulator Tuning**
 
-Australasian Conference on Robotics and Automation (ACRA) Australian Robotics and Automation Association (ARAA), 2021
+Australian Robotics and Automation Association (ARAA) Australasian Conference on Robotics and Automation (ACRA), 2021
 
 [arXiv](https://arxiv.org/pdf/2003.01369.pdf)
 
